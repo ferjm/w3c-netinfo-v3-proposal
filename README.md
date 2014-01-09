@@ -3,7 +3,7 @@
 ## Introduction
 
 ### Use cases and requirements
-A detailed document containing set of use cases and requirements for this API can be found [here](https://github.com/w3c-webmob/netinfo).
+This document attempts to address the [use case and requirements for network information](https://github.com/w3c-webmob/netinfo).
 
 ### Previous versions
 
@@ -14,43 +14,32 @@ A detailed document containing set of use cases and requirements for this API ca
 
 TBW...
 
-## API description
+## Extensions to the Navigator object
 
-### The NetworkInformation interface
-The `NetworkInformation` interface is exposed on the `Navigator` object. 
-   
-    Navigator implements NetworkInformation;
-
-All instances of the `Navigator` type are defined to also implement the `NetworkInformation` interface.
-
-    [NoInterfaceObject]
-    interface NetworkInformation {
+    partial interface Navigator {
           readonly attribute Connection connection;
     };
 
-#### Attributes
+### The `connection` attribute
 
 * **connection** of type [Connection](#the-connection-interface), readonly. The object from which connection information is accessed.
 
 ### The Connection interface
 The `Connection` interface provides a handle to the device's connection information.
 
-    [NoInterfaceObject]
+
     interface Connection : EventTarget {
-        readonly attribute DOMString type;
-        [TreatNonCallableAsNull]
-                 attribute EventHandler? onchange;
+        readonly attribute ConnectionType type;
+                 attribute EventHandler onchange;
     };
+    
+    enum ConnectionType{ "unknown", "ethernet", "wifi", "cellular", "none"}
 
-#### Attributes
+### The `type` attribute
 
-* **type** of type DOMString, readonly. Exposes the current connection type. The value returned is one of the following strings, case-sensitively: `unknown`, `ethernet`, `wifi`, `cellular`, `none`.
-
-* **onchange** of type EventHandler, nullable.
+* **type**. returns the type of connection that the user agent is using to communicate with the internet.
 
 When the `Connection` changes, the user agent must queue a task which updates the `Connection` properties and fire a simple event named `change` at the `Connection` object.
-
-When the user goes online or offline, in addition to the `change` event fired on the `Connection` object, the user agent has to fire a simple event named either `online` or `offline` depending on the applicable value, as defined in [HTML5](http://www.w3.org/TR/html5/).
 
 ## Examples
 
