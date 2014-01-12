@@ -10,9 +10,13 @@ This document attempts to address the [use case and requirements for network inf
 * [Version 1](http://www.w3.org/TR/2011/WD-netinfo-api-20110607/)
 * [Version 2](http://www.w3.org/TR/netinfo-api/)
 
-## Why do we need a new version of this API?
+### What's new in this version?
 
-TBW...
+* Take back the `type` property introduced in [version 1](http://www.w3.org/TR/2011/WD-netinfo-api-20110607) with a different set of possible values.
+* Remove the `bandwidth` and `metered` properties introduced in [version 2](http://www.w3.org/TR/netinfo-api/).
+* Keep the `onchange` event introduced in [version 2](http://www.w3.org/TR/netinfo-api/).
+
+Go to the [Discussion](#discussion) section for a rationale about the changes introduced in this version.
 
 ## Extensions to the Navigator object
 
@@ -26,7 +30,6 @@ TBW...
 
 ### The Connection interface
 The `Connection` interface provides a handle to the device's connection information.
-
 
     interface Connection : EventTarget {
         readonly attribute ConnectionType type;
@@ -162,3 +165,25 @@ This example shows how a web application can advise the user to activate Wi-Fi t
         </script>
       </body>
     </html>
+
+## Discussion
+
+### Why not exposing a `bandwidth` property?
+
+* We did not find any valid use case.
+
+  * [**Adaptive streaming according to network conditions**](http://www.w3.org/community/coremob/wiki/Features/Network_Information_API#Poor_man.27s_adaptive_streaming) does not seem to be an use case solvable by the Network Information API. In fact, it seems that [DASH](http://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP) and/or the [MediaSource Extensions API](https://dvcs.w3.org/hg/html-media/raw-file/default/media-source/media-source.html) are already taking care of this use case in a different way.
+
+  * Use cases like the [example 2](http://www.w3.org/TR/netinfo-api/#examples) of the second version of this API where an image viewer can select a low definition or a high definition image based on the current connection bandwidth are being solved by the [Responsive Images WG](http://responsiveimages.org/) and it seems that the choice of which image to load should be left to the user agent, based on its knowledge of the screen’s pixel density, the device’s bandwidth, and whatever other factors it deems relevant to the decision.
+
+* Not possible to estimate... TBD
+
+### Why not exposing a `metered` property?
+
+TBD
+
+### Why did we changed the `type` property values?
+
+* Avoid potential fingerprinting issues.
+
+TBD
