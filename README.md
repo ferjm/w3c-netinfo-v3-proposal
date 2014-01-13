@@ -35,7 +35,7 @@ The `Connection` interface provides a handle to the device's connection informat
         readonly attribute ConnectionType type;
                  attribute EventHandler onchange;
     };
-    
+
     enum ConnectionType{ "unknown", "ethernet", "wifi", "cellular", "none"}
 
 ### The `type` attribute
@@ -52,119 +52,122 @@ Based on the use cases detailed at [w3c-webmob/netinfo](https://github.com/w3c-w
 
 This basic example shows how a video website can warn the user that watching a video on cellular might cost them money.
 
-    <!DOCTYPE>
-    <html>
-      <head>
-        <title>ACME video</title>
-      </head>
-      <body>
-        <video src="lolcats.ogg" controls></video>
-        <script>
-          function pauseAndWarn() {
-            video.pause();
-            alert("This is a free ACME service. However, your operator may " +
-                  "charge you for the amount of data you use. If you are " +
-                  "unsure how much data costs on your tariff, please contact " +
-                  "your network operator.");
-          }
+```html
+<!DOCTYPE>
+<html>
+  <head>
+    <title>ACME video</title>
+  </head>
+  <body>
+    <video src="lolcats.ogg" controls></video>
+    <script>
+      function warn() {
+        alert("This is a free ACME service. However, your operator may " +
+              "charge you for the amount of data you use. If you are " +
+              "unsure how much data costs on your tariff, please contact " +
+              "your network operator.");
+      }
 
-          var video = document.getElementsByTagName("video")[0];
-          video.addEventListener("playing", function() {
-            if (navigator.connection.type === "cellular") {
-              pauseAndWarn();
-            }
-          });
+      function startLoading() {
+        video.setAttribute("src", "lolcats.ogg" );
+        video.load();
+      }
 
-          navigator.connection.addEventListener("change", function() {
-            if (navigator.connection.type === "cellular" &&
-                !video.paused && !video.ended && video.currentTime > 0) {
-              pauseAndWarn();
-            }
-          });
-        </script>
-      </body>
-    </html>
+      var video = document.getElementsByTagName("video")[0];
+      if (navigator.connection.type === "cellular") {
+        warn();
+      } else if (navigator.connection.type !== "none") {
+        startLoading();
+      }
+    </script>
+  </body>
+</html>
+```
 
 ### Example 2
 
 This example shows how a mobile web application can apply a user preference about wether a download should happen only over WiFi and how can it warn the user about a download happening over cellular.
 
-    <!DOCTYPE>
-    <html>
-      <head>
-        <title>ACME downloads over WiFi</title>
-        <script>
-          var gDownloading = false;
+```html
+<!DOCTYPE>
+<html>
+  <head>
+    <title>ACME downloads over WiFi</title>
+    <script>
+      var gDownloading = false;
 
-          function downloadsOnlyOverWiFi() {
-            // Return true if the user allows downloads only over WiFi
+      function downloadsOnlyOverWiFi() {
+        // Return true if the user allows downloads only over WiFi
+      }
+
+      function doDownload() {
+        // Do download.
+        gDownloading = true;
+      }
+
+      function download() {
+        if (navigator.connection.type === "cellular") {
+          if (downloadsOnlyOverWiFi()) {
+            alert("You are connected to a mobile network and cannot download " +
+                  "this file.");
+            return;
           }
+          alert("You are going to download a file over your mobile network. " +
+                "To prevent this in the future, please visit Settings");
+        }
 
-          function doDownload() {
-            // Do download.
-            gDownloading = true;
-          }
+        doDownload();
+      }
 
-          function download() {
-            if (navigator.connection.type === "cellular") {
-              if (downloadsOnlyOverWiFi()) {
-                alert("You are connected to a mobile network and cannot download " +
-                      "this file.");
-                return;
-              }
-              alert("You are going to download a file over your mobile network. " +
-                    "To prevent this in the future, please visit Settings");
-            }
-
-            doDownload();
-          }
-
-          navigator.connection.addEventListener("change", function() {
-            if (gDownloading && navigator.connection.type === "cellular" &&
-                downloadsOnlyOverWiFi()) {
-              alert("Your phone lost Wi-Fi so we continued your download on your "
-                    "mobile network. To prevent this in the future, go to Settings");
-            }
-          });
-        </script>
-      </head>
-      <body>
-        <button onclick="download();">Download</button>
-      </body>
-    </html>
+      navigator.connection.addEventListener("change", function() {
+        if (gDownloading && navigator.connection.type === "cellular" &&
+            downloadsOnlyOverWiFi()) {
+          alert("Your phone lost Wi-Fi so we continued your download on your "
+                "mobile network. To prevent this in the future, go to Settings");
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <button onclick="download();">Download</button>
+  </body>
+</html>
+```
 
 ### Example 3
 
-This example shows how a web application can advise the user to activate Wi-Fi to improve location accuracy.
+The example provides a simple metering application that monitors how much time
+is the user connected to each type of connection.
 
-    <!DOCTYPE>
-    <html>
-      <head>
-        <title>ACME maps</title>
-      </head>
-      <body>
-        <script>
-          function onPositionSuccess(position) {
-            // Do map stuff.
-          }
+```html
+<!DOCTYPE>
+<html>
+  <head>
+    <title>ACME connection monitor</title>
+  </head>
+  <body>
+    <script>
+      var then = new Date();
+      var lastConnectionType = window.navigator.connection.type;
 
-          function onPositionError() {
-            // Show error.
-          }
+      function addTimeTo(connectionType, time) {
+        /* Add `time` to `connectionType` */
+      }
 
-          function geoFindMe() {
-            if (navigator.connection.type !== "wifi") {
-              alert("Turning on Wi-Fi will improve location accuracy");
-            }
+      function startMonitoring() {
+        window.navigator.connection.addEventListener('change', function () {
+          var now = new Date();
+          addTimeTo(lastConnectionType, now - then);
+          lastConnectionType = window.navigator.connection.type;
+          then = now;
+        })
+      }
 
-            navigator.geolocation.getCurrentPosition(onPositionSuccess,
-                                                     onPositionError);
-          }
-
-          window.onload = geoFindMe;
-        </script>
-      </body>
-    </html>
+      window.onload = startMonitoring;
+    </script>
+  </body>
+</html>
+```
 
 ## Discussion
 
