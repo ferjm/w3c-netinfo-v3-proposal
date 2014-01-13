@@ -172,18 +172,22 @@ This example shows how a web application can advise the user to activate Wi-Fi t
 
 * We did not find any valid use case.
 
-  * [**Adaptive streaming according to network conditions**](http://www.w3.org/community/coremob/wiki/Features/Network_Information_API#Poor_man.27s_adaptive_streaming) does not seem to be an use case solvable by the Network Information API. In fact, it seems that [DASH](http://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP) and/or the [MediaSource Extensions API](https://dvcs.w3.org/hg/html-media/raw-file/default/media-source/media-source.html) are already taking care of this use case in a different way.
+  * [**Adaptive streaming according to network conditions**](http://www.w3.org/community/coremob/wiki/Features/Network_Information_API#Poor_man.27s_adaptive_streaming) does not seem to be an use case solvable by the Network Information API. In fact, it seems that [DASH](http://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP) and/or the [MediaSource Extensions API](https://dvcs.w3.org/hg/html-media/raw-file/default/media-source/media-source.html) are already taking care of this use case in a different way. Check this [interesting video](http://www.youtube.com/watch?v=UklDSMG9ffU) about this topic.
 
   * Use cases like the [example 2](http://www.w3.org/TR/netinfo-api/#examples) of the second version of this API where an image viewer can select a low definition or a high definition image based on the current connection bandwidth are being solved by the [Responsive Images WG](http://responsiveimages.org/) and it seems that the choice of which image to load should be left to the user agent, based on its knowledge of the screen’s pixel density, the device’s bandwidth, and whatever other factors it deems relevant to the decision.
 
-* Not possible to estimate... TBD
+* Hard to estimate.
+
+  * The [Outstanding issues section](http://www.w3.org/TR/netinfo-api/#outstanding-issues) of the second version of this API already mentions that _"`bandwidth` may be hard to implement and can be quite power-consuming to keep up-to-date"_ as it may require regularly sending test payloads that can also add extra costs to the user (probably very significant when in roaming). _"Its value might be unrelated to the actual connection quality that could be affected by the server"_ and by other consumers of the same connection cause the API suggests exposing the total amount of available bandwidth, not the one available for the single consumer of the API. It finally suggests a potential solution that could be _"to return non absolute values that couldn't be easily abused and would be more simple to produce for the user agent. For example, having a set of values like `very-slow`, `slow`, `fast` and `very-fast`. Another solution would be to have only values like `very-slow`, `slow` and the empty string"_. But this does not seem to be a good solution, even if the user agent is able to estimate the available bandwidth, the perception of network speed differs between consumers, what is considered fast enough for some network requests could be slow for others.
+  * [Mozilla's Android implementation](https://mxr.mozilla.org/mozilla-central/source/mobile/android/base/GeckoNetworkManager.java#72) maps static values based on the connection type, which is basically the same as exposing the network type, and it is quite inaccurate if the intention is to expose the network speed available. The theoretical maximum speed for the current connection type might be far from the real current speed. It does not only depends on the location, time of the day, number of active peers but it is also controlled by the network provider. I can be connected via LTE but if I already consumed my monthly data plan, my connection will be really slow. That's why doing assumptions about the network speed based on the connection type is not appropriate and should be discouraged. (Note that none of the [use cases](https://github.com/w3c-webmob/netinfo) specifically mention this).
 
 ### Why not exposing a `metered` property?
 
-TBD
+* We didn't find any use case that cannot be addressed by exposing only the `type` property.
+
+* The user agent won't be able to know the value of this property without asking to the network provider or to the user about it. For the former, we would require network operators to provide an API which enables user agents to query about the user's data plan and its associated costs. Apart from the obvious privacy issues, being a telco employee, I cannot see this happening any time soon. For the latter, it seems that developers can already ask the user if an specific connection type is metered or not and so keep a record of it if needed. So we cannot see any additional value that exposing a `metered` property could add to this API. In fact, existing implementations like [Android](http://androidxref.com/4.3_r2.1/xref/frameworks/support/v4/java/android/support/v4/net/ConnectivityManagerCompat.java#37) or [Firefox](https://mxr.mozilla.org/mozilla-central/source/mobile/android/base/GeckoNetworkManager.java#321) already map the cellular connection type to a metered connection.
 
 ### Why did we changed the `type` property values?
 
 * Avoid potential fingerprinting issues.
-
-TBD
+* Avoid network speed assumptions based on the network connection type.
